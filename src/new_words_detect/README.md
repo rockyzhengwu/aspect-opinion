@@ -28,4 +28,4 @@ stopwords_path: 停用词表的路径
 
 然后在当前不目录下产生```words_score.json```
 
-
+测过还是比较耗内存

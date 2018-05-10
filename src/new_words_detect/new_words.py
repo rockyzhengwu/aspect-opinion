@@ -6,6 +6,7 @@
 """
 # 需要发现的词或字的长度
 
+import re
 import math
 import pickle
 import json
@@ -159,7 +160,8 @@ class NewWordsCaculator(object):
         prob_right = self.preffix_trie.get_word_prob(word_right)
         prob_join = self.preffix_trie.get_word_prob(word_left + word_right)
         # print(prob_left, prob_right, prob_join)
-        pmi = math.log2(prob_join / (prob_left * prob_right))
+        # todo other normal pmi  method
+        pmi = math.log2((prob_join*prob_join) / (prob_left * prob_right))
         return pmi
 
 
@@ -194,6 +196,7 @@ class WordsDis(object):
         self.stopwords = []
         self.is_cut = is_cut
 
+        self._load_stop_words()
         if not os.path.exists(self.caculator_path):
             self.caculator = NewWordsCaculator(max_ngram=self.max_ngram)
             print("start create caculator.....")
@@ -202,9 +205,9 @@ class WordsDis(object):
         else:
             print("load caculator .... ")
             self.caculator = NewWordsCaculator.load(self.caculator_path)
+            self.init_candidate()
 
 
-        self._load_stop_words()
         if is_cut and user_dict:
             jieba.load_userdict(user_dict)
 
@@ -212,22 +215,24 @@ class WordsDis(object):
         if not self.stopwords_path:
             return
         with open(self.stopwords_path) as f:
-            for i,line in enumerate(f):
-                word = line.strip("\n")
+            for i, line in enumerate(f):
+                word = line.strip("\n").strip()
                 self.stopwords.append(word)
+        print("self stop words count: %s"%(len(self.stopwords)))
 
     def cut_words(self, line):
         if self.is_cut:
             words = jieba.cut(line)
         else:
             words = list(line)
-        words = [w for w in words if w not in self.stopwords_path]
+        words = [w for w in words if w not in self.stopwords]
         return words
 
     def crate_caculator(self, source_path):
         with open(source_path) as f:
             for i, line in enumerate(f):
                 line = line.strip("\n")
+                line = re.sub("_", "", line)
                 words = self.cut_words(line)
                 text = "".join(words)
                 self.caculator.add_words_to_trie(text)
@@ -237,6 +242,7 @@ class WordsDis(object):
     def init_candidate(self):
         with open(self.source_path) as f:
             for i, line in enumerate(f):
+                line = re.sub("_", "", line)
                 line = line.strip("\n")
                 words = self.cut_words(line)
                 self.add_candidate(words)
@@ -246,12 +252,26 @@ class WordsDis(object):
         for i in range(text_len-2):
             left  = text[i]
             right = text[i+1]
+            if (len(left) + len(right)) > (self.max_ngram-1):
+                continue
             bi = left + "_" + right
             if bi not in self.candidate:
                 self.candidate[bi] = {}
 
     def caculate_all(self):
-        for k in self.candidate:
+        # print(self.caculator.preffix_trie.get_word_count("枇"))
+        # print(self.caculator.preffix_trie.get_word_count("杷"))
+        # print(self.caculator.preffix_trie.get_word_count("枇杷"))
+        # print("行者")
+        # print(self.caculator.preffix_trie.get_word_count("行"))
+        # print(self.caculator.preffix_trie.get_word_count("者"))
+        # print(self.caculator.preffix_trie.get_word_count("行者"))
+        # print("deep count")
+        # print(self.caculator.preffix_trie.deep_count)
+        # exit(0)
+
+        print("start caculate ....")
+        for k in list(self.candidate.keys()):
             left, right = k.split("_")
             pmi = self.caculator.caculate_pmi(left, right)
             left_entry, right_entry = self.caculator.caculate_entry(left+right)
@@ -261,9 +281,13 @@ class WordsDis(object):
 
     def save_result(self, ):
         f = open(self.out_path, 'w')
-        sort_candiate = sorted(self.candidate.items(), key=lambda x:x[1]["pmi"]+x[1]["left_entry"]+x[1]["right_entry"], reverse=True)
+        sort_candiate = sorted(self.candidate.items(), key=lambda x:x[1]["pmi"]+min(x[1]["left_entry"],x[1]["right_entry"]), reverse=True)
         for k, v in sort_candiate:
-            out_data = {"words":k, "score":v}
+            score = v['pmi'] + min([v['left_entry'],v['right_entry']])
+
+            out_data = {"words":k, "score":score}
+            # if v['pmi'] < 10.0  or v['left_entry']<1.5 or v['right_entry']<1.5:
+            #     continue
             f.write(json.dumps(out_data, ensure_ascii=False)+"\n")
 
 
@@ -278,7 +302,7 @@ if __name__ == '__main__':
     parser.add_argument("--user_dict", required=False, help="user dict to load ")
     parser.add_argument("--cut", dest="cut", help="need cut", action="store_true")
     parser.add_argument("--no-cut", dest="cut", help="no cut", action="store_false")
-    parser.add_argument("--max_ngram", default=10, type=int, help="the max of ngram save by trie")
+    parser.add_argument("--max_ngram", default=6, type=int, help="the max of ngram save by trie")
     parser.add_argument("--stopwords_path", default=None, help="stopwords file path")
     args = parser.parse_args()
 

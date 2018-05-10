@@ -103,3 +103,4 @@ crawler/
 .idea/
 data/
 
+*.pkl

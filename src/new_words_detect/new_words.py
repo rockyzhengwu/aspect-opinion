@@ -19,9 +19,6 @@ class Node(object):
         self.word = word
         self.count =  count
         self.deepth = deepth
-        self.left_entry = 0.0
-        self.right_entry = 0.0
-        self.mi = 0.0
         self.next = {}
 
 class  Trie(object):
@@ -201,7 +198,7 @@ class WordsDis(object):
             self.caculator = NewWordsCaculator(max_ngram=self.max_ngram)
             print("start create caculator.....")
             self.crate_caculator(source_path)
-            self.caculator.dump(self.caculator_path)
+            NewWordsCaculator.dump(self.caculator, self.caculator_path)
         else:
             print("load caculator .... ")
             self.caculator = NewWordsCaculator.load(self.caculator_path)

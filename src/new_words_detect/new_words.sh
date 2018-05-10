@@ -1,0 +1,1 @@
+python new_words.py --source_path test.txt --caculator_path caculator.pkl --out_path words_score.json --stopwords_path stopwords.txt --no-cut

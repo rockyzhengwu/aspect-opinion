@@ -259,17 +259,6 @@ class WordsDis(object):
                 self.candidate[bi] = {}
 
     def caculate_all(self):
-        # print(self.caculator.preffix_trie.get_word_count("枇"))
-        # print(self.caculator.preffix_trie.get_word_count("杷"))
-        # print(self.caculator.preffix_trie.get_word_count("枇杷"))
-        # print("行者")
-        # print(self.caculator.preffix_trie.get_word_count("行"))
-        # print(self.caculator.preffix_trie.get_word_count("者"))
-        # print(self.caculator.preffix_trie.get_word_count("行者"))
-        # print("deep count")
-        # print(self.caculator.preffix_trie.deep_count)
-        # exit(0)
-
         print("start caculate ....")
         for k in list(self.candidate.keys()):
             left, right = k.split("_")
@@ -283,8 +272,11 @@ class WordsDis(object):
         f = open(self.out_path, 'w')
         sort_candiate = sorted(self.candidate.items(), key=lambda x:x[1]["pmi"]+min(x[1]["left_entry"],x[1]["right_entry"]), reverse=True)
         for k, v in sort_candiate:
-            score = v['pmi'] + min([v['left_entry'],v['right_entry']])
+            if v['left_entry']==0 or v['right_entry']==0:
+                # todo entry is zero
+                continue
 
+            score = v['pmi'] + min([v['left_entry'],v['right_entry']])
             out_data = {"words":k, "score":score}
             # if v['pmi'] < 10.0  or v['left_entry']<1.5 or v['right_entry']<1.5:
             #     continue
@@ -334,6 +326,3 @@ if __name__ == '__main__':
     # left_entry, right_entry = new_dwdis.caculate_entry("但是")
     # print("left_entry: %f, right_entry:%f"%(left_entry, right_entry))
     # print("pmi", pmi)
-
-
-

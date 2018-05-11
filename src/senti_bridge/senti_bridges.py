@@ -78,7 +78,7 @@ class PatternPair():
         is_finish = True
         for k, s in v_last.items():
             err =  abs(s - v_now.get(k))
-            if err > 0.00000001:
+            if err > MIN_ERROR:
                 is_finish = False
             error += err
         return is_finish, error
@@ -168,6 +168,9 @@ class PatternPair():
         n_info = {}
         a_info = {}
         for i, (tag, word) in enumerate(sent):
+
+            if not word:
+                continue
             if tag in N_SET:
                 n_info[i] = word
 

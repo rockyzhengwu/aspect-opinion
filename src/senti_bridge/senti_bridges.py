@@ -6,13 +6,14 @@
 
 https://github.com/rainarch/SentiBridge
 """
+
 import json
 import os
 import copy
 import argparse
 
 
-N_SET = ['n']
+N_SET = ['n', 'ns', 'vn', 'nz', 's', 'nr']
 A_SET = ['a']
 
 MAX_SENT = 50
@@ -231,6 +232,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     source_path = args.source_path
     out_dir = args.out_dir
-
     obj = PatternPair(input_path=source_path, out_dir=out_dir)
     obj.train_ranking()

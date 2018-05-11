@@ -1,0 +1,1 @@
+python senti_bridges.py --source_path input.json --out_dir ./

@@ -124,7 +124,7 @@ class HotelCommentCrawler(object):
     def crawl(self, hotel_list_file_path):
         f = open(hotel_list_file_path, 'r')
         for i, line in enumerate(f):
-            if i < 1000:
+            if i < 15926:
                 continue
             hotel_info = json.loads(line)
             hotel_id = hotel_info.get("hotel_id")
